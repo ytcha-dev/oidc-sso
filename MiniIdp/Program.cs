@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using MiniIdp.Application.Configuration;
 using MiniIdp.Data;
@@ -61,7 +62,7 @@ namespace MiniIdp
             #endregion
 
             #region OpenIddict Authorization Code Flow 版本
-            
+
             /* OpenIddict Authorization Code Flow 版本
              builder.Services.AddOpenIddict()
                 .AddCore(options =>
@@ -128,7 +129,7 @@ namespace MiniIdp
              */
 
             #endregion
-            
+
             // 合併配置
             builder.Services.AddOpenIddict()
                 .AddCore(options =>
@@ -172,6 +173,13 @@ namespace MiniIdp
                 {
                     options.UseLocalServer();
                     options.UseAspNetCore();
+                });
+
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Account/Login";
+                    options.LogoutPath = "/Account/Logout";
                 });
 
             // Add services to the container.
