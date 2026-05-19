@@ -58,6 +58,63 @@ namespace MiniIdp.Application.Configuration
 
                 await manager.CreateAsync(descriptor);
             }
+
+
+            // SSO Client App 範例（Authorization Code + PKCE）
+            if (await manager.FindByClientIdAsync("sso-client-app") is null)
+            {
+                await manager.CreateAsync(new OpenIddictApplicationDescriptor
+                {
+                    ClientId = "sso-client-app",
+                    ClientSecret = "sso-client-secret",
+                    DisplayName = "SSO Demo App",
+                    RedirectUris = { new Uri("https://localhost:7275/signin-oidc") },           // ✅ SystemA 的 port
+                    PostLogoutRedirectUris = { new Uri("https://localhost:7275/signout-callback-oidc") },
+                    Permissions =
+                    {
+                        Permissions.Endpoints.Authorization,
+                        Permissions.Endpoints.Token,
+                        Permissions.Endpoints.EndSession,
+                        Permissions.GrantTypes.AuthorizationCode,
+                        Permissions.GrantTypes.RefreshToken,
+                        Permissions.ResponseTypes.Code,
+                        Permissions.Scopes.Email,
+                        Permissions.Scopes.Profile,
+                    },
+                    Requirements =
+                    {
+                        Requirements.Features.ProofKeyForCodeExchange
+                    }
+                });
+            }
+
+            // SystemC
+            if (await manager.FindByClientIdAsync("sso-client-c") is null)
+            {
+                await manager.CreateAsync(new OpenIddictApplicationDescriptor
+                {
+                    ClientId = "sso-client-c",
+                    ClientSecret = "sso-client-c-secret",
+                    DisplayName = "SSO System C",
+                    RedirectUris = { new Uri("https://localhost:7300/signin-oidc") },
+                    PostLogoutRedirectUris = { new Uri("https://localhost:7300/signout-callback-oidc") },
+                    Permissions =
+                    {
+                        Permissions.Endpoints.Authorization,
+                        Permissions.Endpoints.Token,
+                        Permissions.Endpoints.EndSession,
+                        Permissions.GrantTypes.AuthorizationCode,
+                        Permissions.GrantTypes.RefreshToken,
+                        Permissions.ResponseTypes.Code,
+                        Permissions.Scopes.Email,
+                        Permissions.Scopes.Profile,
+                    },
+                    Requirements =
+                    {
+                        Requirements.Features.ProofKeyForCodeExchange
+                    }
+                });
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

@@ -1,8 +1,25 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h2>System A 首頁</h2>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <p class="text-success fw-bold">✅ 已登入：@User.Identity.Name</p>
+    <div class="d-flex gap-2 mt-3">
+        <a asp-action="Detail" class="btn btn-primary">Detail（需登入）</a>
+        <a asp-action="Logout" class="btn btn-outline-danger">登出</a>
+    </div>
+}
+else
+{
+    <p class="text-muted">目前尚未登入。</p>
+    <a asp-action="Detail" class="btn btn-primary mt-2">前往 Detail（點此登入）</a>
+}
+
+<hr class="mt-5" />
+<h5>🔗 跨系統 SSO 驗證</h5>
+<a href="https://localhost:7300" class="btn btn-outline-primary mt-2" target="_blank">
+    前往 System C
+</a>

@@ -52,8 +52,12 @@ namespace MiniIdp.Controllers
             }
             else if (request.IsAuthorizationCodeGrantType())
             {
-                // Retrieve the claims principal stored in the authorization code
-                var claimsPrincipal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
+                // ✅ 從 authorization code 取回當初 Authorize() 存入的 principal
+                var principal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal
+                    ?? throw new InvalidOperationException("The user principal cannot be retrieved.");
+
+                // ✅ 直接用原本的 principal 簽發 token，回傳給 SystemA
+                return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             }
 
             throw new InvalidOperationException("The specified grant type is not supported.");
@@ -86,8 +90,9 @@ namespace MiniIdp.Controllers
             var claims = new List<Claim>
             {
                 // 'subject' claim which is required
-                new Claim(OpenIddictConstants.Claims.Subject, result.Principal.Identity.Name),
-                new Claim("some claim", "some value").SetDestinations(OpenIddictConstants.Destinations.AccessToken)
+                new Claim(Claims.Subject, result.Principal.Identity.Name),
+                new Claim(Claims.Name, result.Principal.Identity.Name).SetDestinations(Destinations.AccessToken, Destinations.IdentityToken),
+                new Claim(Claims.Email, result.Principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty).SetDestinations(Destinations.IdentityToken),
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -99,6 +104,30 @@ namespace MiniIdp.Controllers
 
             // Signing in with the OpenIddict authentiction scheme trigger OpenIddict to issue a code (which can be exchanged for an access token)
             return SignIn(claimsPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("~/connect/userinfo")]
+        public async Task<IActionResult> UserInfo()
+        {
+            var claimsPrincipal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
+
+            return Ok(new
+            {
+                sub = claimsPrincipal.GetClaim(Claims.Subject),
+                name = claimsPrincipal.GetClaim(Claims.Name),
+                email = claimsPrincipal.GetClaim(Claims.Email),
+            });
+        }
+
+        [HttpGet("~/connect/logout")]
+        [HttpPost("~/connect/logout")]
+        public async Task<IActionResult> Logout()
+        {
+            // 清除 MiniIdp 的 Cookie（使用者在 IDP 的 session）
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            // 通知 OpenIddict 完成 end_session 流程，並跳回 Client App 的 PostLogoutRedirectUri
+            return SignOut(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
     }
 }

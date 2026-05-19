@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "SSO 狀態";
+}
+
+<h2>SSO 登入狀態</h2>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <p class="text-success fw-bold">✅ 已登入</p>
+    <table class="table table-bordered col-md-8 mt-3">
+        <thead class="table-dark">
+            <tr><th>Claim Type</th><th>Value</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var claim in User.Claims)
+            {
+                <tr>
+                    <td><code>@claim.Type</code></td>
+                    <td>@claim.Value</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-warning">⚠️ 尚未登入</p>
+    <a asp-controller="Sso" asp-action="Login" class="btn btn-primary">SSO 登入</a>
+}
+
+<a asp-controller="Home" asp-action="Index" class="btn btn-secondary mt-3">回首頁</a>

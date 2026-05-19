@@ -1,0 +1,53 @@
+@model IEnumerable<MiniIdp.ViewModels.ClientListItemViewModel>
+@{
+    ViewData["Title"] = "Client 管理";
+}
+
+<h2 class="mb-4">Client 管理</h2>
+
+@if (TempData["Success"] is string msg)
+{
+    <div class="alert alert-success">@msg</div>
+}
+
+<a asp-action="Create" class="btn btn-primary mb-3">＋ 新增 Client</a>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Client ID</th>
+            <th>顯示名稱</th>
+            <th>類型</th>
+            <th style="width:160px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td><code>@item.ClientId</code></td>
+                <td>@item.DisplayName</td>
+                <td>
+                    @if (item.ClientType == "public")
+                    {
+                        <span class="badge bg-warning text-dark">Public</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Confidential</span>
+                    }
+                </td>
+                <td class="d-flex gap-1">
+                    <a asp-action="Edit" asp-route-clientId="@item.ClientId"
+                       class="btn btn-sm btn-outline-primary">編輯</a>
+                    <form asp-action="Delete" method="post"
+                          onsubmit="return confirm('確定刪除 @item.ClientId ？')">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="clientId" value="@item.ClientId" />
+                        <button type="submit" class="btn btn-sm btn-danger">刪除</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

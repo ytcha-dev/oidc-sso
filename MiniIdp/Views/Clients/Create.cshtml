@@ -1,0 +1,110 @@
+@model MiniIdp.ViewModels.CreateClientViewModel
+@{
+    ViewData["Title"] = "新增 Client";
+}
+
+<h2 class="mb-4">新增 Client</h2>
+
+<form asp-action="Create" method="post" class="col-md-8">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="ClientId" class="form-label"></label>
+        <input asp-for="ClientId" class="form-control" />
+        <span asp-validation-for="ClientId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DisplayName" class="form-label"></label>
+        <input asp-for="DisplayName" class="form-control" />
+        <span asp-validation-for="DisplayName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ClientType" class="form-label"></label>
+        <select asp-for="ClientType" class="form-select" id="clientTypeSelect">
+            <option value="confidential">Confidential（後端 Web App / Console）</option>
+            <option value="public">Public（SPA / 手機 App）</option>
+        </select>
+    </div>
+
+    <div class="mb-3" id="secretSection">
+        <label asp-for="ClientSecret" class="form-label"></label>
+        <input asp-for="ClientSecret" class="form-control" />
+        <span asp-validation-for="ClientSecret" class="text-danger"></span>
+    </div>
+
+    <fieldset class="border rounded p-3 mb-3">
+        <legend class="float-none w-auto px-2 fs-6 fw-bold">Grant Types</legend>
+        <div class="form-check">
+            <input asp-for="AllowAuthorizationCodeFlow" class="form-check-input" id="authCode" />
+            <label class="form-check-label" for="authCode">Authorization Code Flow（+ PKCE）</label>
+        </div>
+        <div class="form-check">
+            <input asp-for="AllowClientCredentialsFlow" class="form-check-input" />
+            <label asp-for="AllowClientCredentialsFlow" class="form-check-label"></label>
+        </div>
+        <div class="form-check">
+            <input asp-for="AllowRefreshToken" class="form-check-input" />
+            <label asp-for="AllowRefreshToken" class="form-check-label"></label>
+        </div>
+    </fieldset>
+
+    <fieldset class="border rounded p-3 mb-3" id="redirectSection">
+        <legend class="float-none w-auto px-2 fs-6 fw-bold">Redirect URIs</legend>
+        <div class="mb-2">
+            <label asp-for="RedirectUris" class="form-label"></label>
+            <textarea asp-for="RedirectUris" class="form-control font-monospace" rows="3"
+                      placeholder="https://localhost:7200/signin-oidc"></textarea>
+        </div>
+        <div>
+            <label asp-for="PostLogoutRedirectUris" class="form-label"></label>
+            <textarea asp-for="PostLogoutRedirectUris" class="form-control font-monospace" rows="2"
+                      placeholder="https://localhost:7200/signout-callback-oidc"></textarea>
+        </div>
+    </fieldset>
+
+    <fieldset class="border rounded p-3 mb-3">
+        <legend class="float-none w-auto px-2 fs-6 fw-bold">Scopes</legend>
+        <div class="d-flex gap-4 flex-wrap">
+            <div class="form-check">
+                <input asp-for="ScopeEmail" class="form-check-input" />
+                <label asp-for="ScopeEmail" class="form-check-label"></label>
+            </div>
+            <div class="form-check">
+                <input asp-for="ScopeProfile" class="form-check-input" />
+                <label asp-for="ScopeProfile" class="form-check-label"></label>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">建立</button>
+        <a asp-action="Index" class="btn btn-secondary">取消</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        const authCodeCheck = document.getElementById('authCode');
+        const redirectSection = document.getElementById('redirectSection');
+        const clientTypeSelect = document.getElementById('clientTypeSelect');
+        const secretSection = document.getElementById('secretSection');
+
+        function toggleRedirect() {
+            redirectSection.style.display = authCodeCheck.checked ? '' : 'none';
+        }
+
+        function toggleSecret() {
+            secretSection.style.display = clientTypeSelect.value === 'public' ? 'none' : '';
+        }
+
+        authCodeCheck.addEventListener('change', toggleRedirect);
+        clientTypeSelect.addEventListener('change', toggleSecret);
+
+        toggleRedirect();
+        toggleSecret();
+    </script>
+}
